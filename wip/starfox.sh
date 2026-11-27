@@ -2,7 +2,7 @@
 REPO=https://github.com/mstan/StarFoxSNESRecomp
 COMMIT=faac8d491cf144104c0e9904ed9a3493fbc27d9e
 EXE=StarFoxSNESRecomp
-recipe_regen() { cp "$ROM" starfox.sfc; sh tools/regen.sh --no-tests; }
+recipe_regen() { cp "$ROM" starfox.sfc; bash tools/regen.sh --no-tests; }
 recipe_patch() { snes_host_main_edits; snes_fiber_web; }
 CMAKE_ARGS=(-DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL_GLES2_ONLY=ON -DBUILD_TESTING=OFF
             -DSNESRECOMP_ENABLE_NET=OFF -DSNESRECOMP_ENABLE_LUA=OFF -DSNESRECOMP_HD_GPU=OFF)

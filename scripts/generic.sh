@@ -27,7 +27,7 @@ cp "$ROM" "$work/game.sfc"; ROM="$work/game.sfc"
 echo "== [2/6] criando o projeto genérico e gerando o C"
 # o framework vem do cache local: o git precisa aceitar submódulo por caminho de arquivo
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=protocol.file.allow GIT_CONFIG_VALUE_0=always
-if ! sh "$fw/tools/new_project/setup_project.sh" --rom "$ROM" --dir "$work" --name Game --players 2 \
+if ! bash "$fw/tools/new_project/setup_project.sh" --rom "$ROM" --dir "$work" --name Game --players 2 \
      --no-ci --no-recomp-ui --no-netplay --no-fetch-boxart --no-github --no-generate --no-build --yes \
      --snesrecomp-url "$fw" > "$work/setup.log" 2>&1; then
   echo "erro: o SNESRecomp não suporta esta ROM (mapeamento ou chip especial); detalhe:" >&2
@@ -37,7 +37,7 @@ proj=$(find "$work" -maxdepth 2 -name CMakeLists.txt -path '*SNESRecomp/*' -prin
 cd "$proj"
 git submodule update -q --init --recursive
 EXE=$(basename "$proj")
-sh tools/regen.sh --rom "$ROM" --no-verify > "$work/regen.log" 2>&1 || { tail -20 "$work/regen.log" >&2; exit 1; }
+bash tools/regen.sh --rom "$ROM" --no-verify > "$work/regen.log" 2>&1 || { tail -20 "$work/regen.log" >&2; exit 1; }
 
 echo "== [3/6] build nativo de análise"
 cmake -S . -B "$work/native" -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
