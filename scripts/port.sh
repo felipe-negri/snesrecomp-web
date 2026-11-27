@@ -50,7 +50,7 @@ ldflags="-sASYNCIFY ${ASYNCIFY_MODE:--sASYNCIFY_IGNORE_INDIRECT} -sALLOW_MEMORY_
 -sEXIT_RUNTIME=0 -lidbfs.js -sFORCE_FILESYSTEM -sMAX_WEBGL_VERSION=2 --pre-js=$ROOT/web/pre.js \
 --preload-file=$ROM@/game.sfc"
 # primeiro sem os flags de link: com eles os testes de configuração (pthread etc.) falham
-emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release "${CMAKE_ARGS[@]}" > "$work/web.log" 2>&1 \
+emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release "-DPython3_EXECUTABLE=$(command -v python3)" "${CMAKE_ARGS[@]}" > "$work/web.log" 2>&1 \
   && cmake build "-DCMAKE_EXE_LINKER_FLAGS=$ldflags" >> "$work/web.log" 2>&1 \
   || { grep -A5 'CMake Error' "$work/web.log" >&2; exit 1; }
 cmake --build build --parallel --target "$EXE" >> "$work/web.log" 2>&1 || { grep -m5 'error' "$work/web.log" >&2; exit 1; }
