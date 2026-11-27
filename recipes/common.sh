@@ -26,3 +26,12 @@ snes_host_main_edits() {
               'static void DrawPpuFrameWithPerfImpl(void);\nstatic void DrawPpuFrameWithPerf(void) {\n  DrawPpuFrameWithPerfImpl();\n#ifdef __EMSCRIPTEN__\n  emscripten_sleep(0);\n#endif\n}\nstatic void DrawPpuFrameWithPerfImpl(void) {\n'
   snes_rnet_edit
 }
+
+# Ports que rodam o jogo numa fibra (runner/src/desktop/fiber_compat.c, API no estilo Win32): na web viram
+# fibras do Emscripten; a receita precisa de Asyncify completo (ASYNCIFY_MODE sem IGNORE_INDIRECT).
+snes_fiber_web() {
+  cp "$ROOT/web/fiber_snes_web.inc" snesrecomp/runner/src/desktop/fiber_snes_web.inc
+  python3 "$ROOT/recipes/edit.py" snesrecomp/runner/src/desktop/fiber_compat.c \
+    --replace '#ifndef _WIN32\n#ifdef __ANDROID__\n' \
+              '#ifndef _WIN32\n#if defined(__EMSCRIPTEN__)\n#include "fiber_compat.h"\n#include "fiber_snes_web.inc"\n#elif defined(__ANDROID__)\n'
+}
