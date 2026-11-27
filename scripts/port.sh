@@ -15,9 +15,9 @@ if [ $((size % 1024)) -eq 512 ]; then sha=$(tail -c +513 "$ROM" | sha1sum | cut 
 else sha=$(sha1sum "$ROM" | cut -c1-40); fi
 recipe=$(awk -F'\t' -v s="$sha" '$1==s {print $2}' "$ROOT/games.tsv")
 if [ -z "$recipe" ]; then
-  echo "erro: jogo não suportado (SHA-1 $sha). Suportados:" >&2
-  grep -v '^#' "$ROOT/games.tsv" | cut -f3 | sed 's/^/  - /' >&2
-  exit 2
+  # sem port pronto: recomp genérico próprio (projeto genérico do SNESRecomp + rodadas de perfil)
+  echo "   sem port pronto (SHA-1 $sha): usando o recomp genérico"
+  exec "$ROOT/scripts/generic.sh" "$name" "$ROM"
 fi
 # shellcheck disable=SC1091
 source "$ROOT/recipes/common.sh"
