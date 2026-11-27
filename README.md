@@ -10,5 +10,10 @@ scripts/setup.sh                       # Emscripten SDK; needs git, python3, cma
 scripts/port.sh smw "Super Mario World (USA).sfc"   # -> build/web-smw/index.html
 ```
 
+Supported: Super Mario World (USA), The Legend of Zelda: A Link to the Past (USA). See `games.tsv`.
+
+```
+```
+
 No ROM or generated code is stored here. The ports and the framework are under the PolyForm
 Noncommercial license with their PERMISSIONS.md; this recipe repository adds no game data.

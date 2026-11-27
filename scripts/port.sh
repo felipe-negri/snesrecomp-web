@@ -19,6 +19,8 @@ if [ -z "$recipe" ]; then
   grep -v '^#' "$ROOT/games.tsv" | cut -f3 | sed 's/^/  - /' >&2
   exit 2
 fi
+# shellcheck disable=SC1091
+source "$ROOT/recipes/common.sh"
 # shellcheck disable=SC1090
 source "$ROOT/recipes/$recipe.sh"
 echo "   $recipe ($REPO @ ${COMMIT:0:7})"
@@ -44,7 +46,7 @@ recipe_patch
 echo "== [4/5] compilando WASM"
 # shellcheck disable=SC1091
 source "$EMSDK/emsdk_env.sh" > /dev/null 2>&1
-ldflags="-sASYNCIFY -sASYNCIFY_IGNORE_INDIRECT -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=256MB -sSTACK_SIZE=2MB \
+ldflags="-sASYNCIFY ${ASYNCIFY_MODE:--sASYNCIFY_IGNORE_INDIRECT} -sALLOW_MEMORY_GROWTH -sINITIAL_MEMORY=256MB -sSTACK_SIZE=2MB \
 -sEXIT_RUNTIME=0 -lidbfs.js -sFORCE_FILESYSTEM -sMAX_WEBGL_VERSION=2 --pre-js=$ROOT/web/pre.js \
 --preload-file=$ROM@/game.sfc"
 # primeiro sem os flags de link: com eles os testes de configuração (pthread etc.) falham
@@ -52,6 +54,14 @@ emcmake cmake -S . -B build -DCMAKE_BUILD_TYPE=Release "${CMAKE_ARGS[@]}" > "$wo
   && cmake build "-DCMAKE_EXE_LINKER_FLAGS=$ldflags" >> "$work/web.log" 2>&1 \
   || { grep -A5 'CMake Error' "$work/web.log" >&2; exit 1; }
 cmake --build build --parallel --target "$EXE" >> "$work/web.log" 2>&1 || { grep -m5 'error' "$work/web.log" >&2; exit 1; }
+
+# WebAssembly não perdoa chamada sem protótipo: o wasm-ld troca a função por uma armadilha
+# (ALLOWED_MISMATCH na receita lista as que foram conferidas e não fazem mal)
+bad=$(grep -o 'function signature mismatch: [A-Za-z0-9_]*' "$work/web.log" | awk '{print $4}' | sort -u \
+      | grep -vxF -f <(tr ' ' '\n' <<< "${ALLOWED_MISMATCH:-}") || true)
+if [ -n "$bad" ]; then
+  echo "erro: funções chamadas com assinatura errada (o jogo travaria no navegador): $bad" >&2; exit 1
+fi
 
 echo "== [5/5] publicando"
 rm -rf "$out"; mkdir -p "$out"
