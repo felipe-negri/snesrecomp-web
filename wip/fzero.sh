@@ -18,10 +18,18 @@ recipe_patch() {
     --replace '    GenericStringRef& operator=(const GenericStringRef& rhs) { s = rhs.s; length = rhs.length; }' \
               '    GenericStringRef& operator=(const GenericStringRef& rhs) = delete;'
   python3 "$ROOT/recipes/edit.py" CMakeLists.txt \
-    --replace 'if(ANDROID)\n    include(android/dependencies.cmake)' 'if(ANDROID OR EMSCRIPTEN)\n    include(android/dependencies.cmake)'
+    --replace 'if(ANDROID)\n    include(android/dependencies.cmake)' 'if(EMSCRIPTEN)\n    include(android/dependencies.cmake)\nelseif(ANDROID)\n    include(android/dependencies.cmake)'
   python3 "$ROOT/recipes/edit.py" android/dependencies.cmake \
     --replace 'add_subdirectory("${dep}/SDL" "${CMAKE_BINARY_DIR}/SDL" EXCLUDE_FROM_ALL)' \
               'if(NOT EMSCRIPTEN)\n    add_subdirectory("${dep}/SDL" "${CMAKE_BINARY_DIR}/SDL" EXCLUDE_FROM_ALL)\nendif()'
 }
-CMAKE_ARGS=(-DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL_GLES2_ONLY=ON -DBUILD_TESTING=OFF
+# o renderizador GL do F-Zero usa a API do SDL3 fora do Android
+CMAKE_ARGS=(-DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DBUILD_TESTING=OFF "-DCMAKE_CXX_FLAGS=-Wno-error=deprecated-declarations"
             -DSNESRECOMP_ENABLE_NET=OFF -DSNESRECOMP_ENABLE_LUA=OFF -DSNESRECOMP_HD_GPU=OFF)
+OUT_NAME="F-Zero Forever"
+STAGE_DIRS="assets mods"          # pacotes de veículos/pistas que o jogo lê na hora de abrir
+WEB_ARGS="'/game.sfc'"            # o F-Zero não tem --no-launcher; com a ROM na linha de comando ele já entra no jogo
+# PENDENTE (27/11 madrugada): compila (SDL3 + dependências pinadas do Android, 6,9 MB) e abre, mas para em
+# FzeroTracksPrepare com "[vehicles]" e erro vazio: algum pacote de veículo/pista que o build nativo deixa
+# ao lado do executável não chega certo no FS da página (STAGE_DIRS="assets mods"). Próximo passo: rodar o
+# build nativo e comparar a árvore ao lado do executável com o que o file_packager empacota.

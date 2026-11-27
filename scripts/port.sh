@@ -65,6 +65,22 @@ fi
 
 echo "== [5/5] publicando"
 rm -rf "$out"; mkdir -p "$out"
-cp "build/$EXE.js" "build/$EXE.wasm" "build/$EXE.data" "$out/"
-sed "s|{{{ SCRIPT }}}|<script async src=\"$EXE.js\"></script>|" "$ROOT/web/shell.html" > "$out/index.html"
+# OUT_NAME (receita): nome do arquivo quando o alvo define OUTPUT_NAME; publica sempre como $EXE.*
+o="${OUT_NAME:-$EXE}"
+cp "build/$o.wasm" "$out/$EXE.wasm"; cp "build/$o.data" "$out/$EXE.data"
+sed -e "s|$o\.wasm|$EXE.wasm|g" -e "s|$o\.data|$EXE.data|g" "build/$o.js" > "$out/$EXE.js"
+scripts="<script async src=\"$EXE.js\"></script>"
+# STAGE_DIRS (receita): pastas que o build nativo deixa ao lado do executável (assets, mods...) viram um
+# pacote extra carregado antes do jogo
+if [ -n "${STAGE_DIRS:-}" ]; then
+  pk=(); for d in $STAGE_DIRS; do pk+=("build/$d@/$d"); done
+  python3 "$EMSDK/upstream/emscripten/tools/file_packager.py" "$out/$EXE-assets.data" --preload "${pk[@]}" \
+    --js-output="$out/$EXE-assets.js" > /dev/null
+  scripts="<script src=\"$EXE-assets.js\"></script><script src=\"$EXE.js\"></script>"
+fi
+sed "s|{{{ SCRIPT }}}|$scripts|" "$ROOT/web/shell.html" > "$out/index.html"
+# WEB_ARGS (receita): argumentos do jogo, se não forem os de sempre
+if [ -n "${WEB_ARGS:-}" ]; then
+  sed -i "s|arguments: \['--no-launcher', '/game.sfc'\]|arguments: [$WEB_ARGS]|" "$out/index.html"
+fi
 cd "$ROOT"; rm -rf "$work/src"   # o port com o C gerado é grande e sai de novo a cada build
