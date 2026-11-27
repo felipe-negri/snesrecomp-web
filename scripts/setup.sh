@@ -14,4 +14,9 @@ if [ ! -f "$EMSDK/emsdk_env.sh" ]; then
   "$EMSDK/emsdk" install "$EMSDK_VERSION"
   "$EMSDK/emsdk" activate "$EMSDK_VERSION"
 fi
+# o CMake dos ports acha o SDL2 por find_package: o SDL2Config.cmake só aparece no sysroot depois que o
+# port do SDL2 é compilado; num emsdk novo isso não aconteceu ainda
+# shellcheck disable=SC1091
+source "$EMSDK/emsdk_env.sh" > /dev/null 2>&1
+embuilder build sdl2 > /dev/null
 echo "== ready"
