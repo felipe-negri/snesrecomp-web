@@ -3,6 +3,7 @@ Module.preRun = Module.preRun || [];
 Module.preRun.push(function () {
   // SDL must not suspend inside SDL_RenderPresent: only the frame wait sleeps (ASYNCIFY_IGNORE_INDIRECT).
   ENV.SDL_EMSCRIPTEN_ASYNCIFY = '0';
+  ENV.MMX_LOG_CONSOLE = '1';   // Mega Man X ports log to a file by default; keep it in the console
   FS.mkdir('/saves');
   FS.mount(IDBFS, {}, '/saves');
   addRunDependency('snesweb-saves');
